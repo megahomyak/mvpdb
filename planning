@@ -1,0 +1,20 @@
+let's say we're not doing the protections yet
+
+free space stack:
+root: *node
+*node=null => next is at next addr. so the queue is infinite
+
+free space pop (*root (ptr==index in file)):
+. new = *root
+. next = *new
+. if next=null:
+. . next = new+blocksize
+. . *next = null
+. *root = next
+. rt new
+
+free space push (*root, *new):
+. *new = *root
+. *root = new
+
+every *= is a write, every =* is a read
