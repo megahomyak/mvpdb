@@ -31,3 +31,34 @@ every *= is a write, every =* is a read
 === AN IDEA ABOUT STORING THE STACK STATE INSIDE OF THE FILE ===
 
 I guess everything can be made perfect if all the internal state (i.e. the local variables from the stack) from the db's library functions can be stored inside the static area in the file, except for constants, which will only store various offsets, and the file interaction object (the thing that can do reads or writes)
+
+In fact, this can be extended by splitting the code into states, where it will be like this: (state info available for reading, any position in file available for writing) -> (everything available for reading, nothing available for writing). After the state finishes execution, it needs to switch to another state, with the "nothing to do" state being an exception to that (it should be a valid state, but shouldn't switch to other states, and instead control should be passed back to the caller). This all can be done with something like this:
+
+const stateIds = {
+    first: 0,
+    second: 1,
+    end: 2,
+};
+
+let writeStateToFile = state => {
+    let bytes = state.makeBytes();
+    /* ... */
+};
+
+let processStates = initialState => {
+    let state = initialState;
+    for (;;) {
+        if (state.id == stateIds.end) {
+            return;
+        }
+        state = {
+            stateIds.first: (ctx, writer) => {
+
+            },
+            stateIds.second: (ctx, writer) => {
+
+            },
+        }[state.id]();
+        writeStateToFile(state);
+    }
+};
