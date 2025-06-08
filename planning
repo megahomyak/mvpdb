@@ -1,3 +1,5 @@
+=== FREE NODES THOUGHTS ===
+
 let's say we're not doing the protections yet
 
 free space stack:
@@ -19,8 +21,13 @@ free space push (*root, *new):
 
 every *= is a write, every =* is a read
 
-PROTECTED STATIC VARIABLE CHANGE, VARIABLE OF ANY SIZE:
+=== PROTECTED STATIC VARIABLE CHANGE, VARIABLE OF ANY SIZE ===
+
 * bitflips are always atomic (bc there's no state between a "0" and a "1")
 * two slots for the variable and one bit to indicate which slot is active ("0" = first, "1" = second)
 * init the bit with "0" and the first slot with a _valid_ variable value. do this on database initialization
 * on variable change, write to the opposite slot (its index being `1 - index_bit`). after the write, flip the index bit
+
+=== AN IDEA ABOUT STORING THE STACK STATE INSIDE OF THE FILE ===
+
+I guess everything can be made perfect if all the internal state (i.e. the local variables from the stack) from the db's library functions can be stored inside the static area in the file, except for constants, which will only store various offsets, and the file interaction object (the thing that can do reads or writes)
