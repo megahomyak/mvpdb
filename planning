@@ -53,12 +53,19 @@ let processStates = initialState => {
         }
         state = {
             stateIds.first: (ctx, writer) => {
-
+                writer.write(ctx.some_addr, ctx.some_value + 1);
+                let reader = writer.makeReader();
+                if (reader.read(ctx.some_other_addr)) {
+                    return makeStateSecond();
+                } else {
+                    return makeEndState();
+                }
             },
             stateIds.second: (ctx, writer) => {
-
+                // imagine something here
+                return makeEndState();
             },
-        }[state.id]();
+        }[state.id](state???, makeWriter());
         writeStateToFile(state);
     }
 };
