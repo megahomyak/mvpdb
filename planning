@@ -86,6 +86,11 @@ How to do the unprotected->protected conversion:
 * Before every write segment, do a state save
 * For the input data (i.e. the array of data to add/remove), have it be accessible through a separate parameter which may be null (for recovery cases)
 
+To remove unnecessary saves, this thing can be remodeled:
+* We start with a "does state depend on changes that may be overwritten?" flag set to "0"
+* On writes, if the flag is "1", state must be saved before the write and the flag should be set to "0"
+* On reads, the flag is set to "1"
+
 OPERATIONS:
 * "get" - doesn't have to be protected because it is read-only
 * "beginTransaction" - has to be protected
