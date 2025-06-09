@@ -69,3 +69,10 @@ let processStates = initialState => {
         writeStateToFile(state);
     }
 };
+
+=== DOING EVERYTHING AS IF THERE'S NO POWER-DOWN PROTECTION TO FURTHER TURN THE CODE INTO POWER-DOWN PROTECTED CODE ===
+
+How to do the unprotected->protected conversion:
+* Group file reads and file writes in the code into "write segments" and "read segments"
+* Before every write segment, do a state save
+* For the input data (i.e. the array of data to add/remove), have it be accessible through a separate parameter which may be null (for recovery cases)
