@@ -6,18 +6,27 @@ free space stack:
 root: *node
 *node=null => next is at next addr. so the queue is infinite
 
-free space pop (*root (ptr==index in file)):
-. new = *root
-. next = *new
+free space pop with one slot (*root (ptr==index in file)):
+. new = *root // read
+. next = *new // read
 . if next=null:
 . . next = new+blocksize
-. . *next = null
-. *root = next
+. . *next = null // write
+. *root = next // write
 . rt new
 
+free space pop with two slots (*root, *end): // this is better because otherwise there would still be two memory areas taken, but in this case it even takes less space (and less ops)
+. freeSlot = *root // read
+. if freeSlot=null:
+. . freeSlot = *end // read
+. . *end = freeSlot + 4 // write
+. else:
+. . *root = *freeSlot // read, then write
+. rt freeSlot
+
 free space push (*root, *new):
-. *new = *root
-. *root = new
+. *new = *root // read, then write
+. *root = new // write
 
 every *= is a write, every =* is a read
 
@@ -76,3 +85,24 @@ How to do the unprotected->protected conversion:
 * Group file reads and file writes in the code into "write segments" and "read segments"
 * Before every write segment, do a state save
 * For the input data (i.e. the array of data to add/remove), have it be accessible through a separate parameter which may be null (for recovery cases)
+
+OPERATIONS:
+* "get" - doesn't have to be protected because it is read-only
+* "beginTransaction" - has to be protected
+* "add" - has to be protected
+* "remove" - has to be protected
+* "commit" - has to be protected
+
+add(s, *dataRoot, *freeRoot) {
+    result = s.advance()
+    if result=END:
+        ...
+    elif result=UNAVAILABLE:
+        ...
+    elif result=SUCCESS:
+        ...
+}
+
+remove(s) {
+
+}
