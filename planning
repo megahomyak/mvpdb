@@ -91,7 +91,7 @@ To remove unnecessary saves, this thing can be remodeled:
 * On writes, if the flag is "1", state must be saved before the write and the flag should be set to "0"
 * On reads, the flag is set to "1"
 
-Actually, the only time something has to be done is when there's any indirection. This is why writes to static state are safe: no pointers => no indirection
+Actually, the only time something has to be done is when there's any indirection. This is why writes to static state are safe: no pointers => no indirection. But I'm not sure about this, the static area access may not be entirely without indirection. Maybe this all is only about getting addresses, not the values that can be read from them
 
 === THINKING THROUGH THE STORAGE OF DIFFERENT ENTITIES ===
 
