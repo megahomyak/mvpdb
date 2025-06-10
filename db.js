@@ -86,6 +86,22 @@ let makeMVPDB = bitStorage => {
             },
         };
     };
+    let protect = item => addr => {
+        let combination = struct(field => ({
+            activeVariantIndex: field(bool()),
+            variants: field(array(item)),
+        }))(addr);
+        return {
+            size: combination.size,
+            contents: {
+                switch_: () => {
+                    combination.contents.activeVariantIndex.write(combination.contents.activeVariantIndex.read());
+                },
+                getActiveVariant: () => combination.contents.variants.get(combination.contents.activeVariantIndex.read()),
+                getInactiveVariant: () => combination.contents.variants.get(combination.contents.activeVariantIndex.read()),
+            },
+        };
+    };
 
     let slot = () => union(variant => ({
         data: variant(struct(field => ({
@@ -104,15 +120,12 @@ let makeMVPDB = bitStorage => {
             }))),
         }))),
     }));
-    let staticState = () => struct(field => ({
-        activeVariantIndex: field(bool()),
-        variants: field(array(2, struct(field => ({
-            dataTreeRoot: field(pointer(slot())),
-            freesQueueBeginning: field(pointer(slot())),
-            eof: field(pointer(slot())),
-            transactionQueueBeginning: field(pointer(slot())),
-        })))),
-    }));
+    let staticState = () => protect(struct(field => ({
+        dataTreeRoot: field(pointer(slot())),
+        freesQueueBeginning: field(pointer(slot())),
+        eof: field(pointer(slot())),
+        transactionQueueBeginning: field(pointer(slot())),
+    })));
 
     return {
         get: () => {},

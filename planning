@@ -91,6 +91,8 @@ To remove unnecessary saves, this thing can be remodeled:
 * On writes, if the flag is "1", state must be saved before the write and the flag should be set to "0"
 * On reads, the flag is set to "1"
 
+Actually, the only time something has to be done is when there's any indirection. This is why writes to static state are safe: no pointers => no indirection
+
 === THINKING THROUGH THE STORAGE OF DIFFERENT ENTITIES ===
 
 The data tree:
