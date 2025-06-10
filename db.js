@@ -52,7 +52,7 @@ let makeMVPDB = bitStorage => {
             size,
             read,
             write: newValue => writeNumber(newValue, size, addr),
-            resolve: () => target(read()),
+            get: index => target(read() + index * target(0).size).contents,
         };
     };
     let array = (itemsCount, item) => addr => {
