@@ -98,7 +98,7 @@ let makeMVPDB = bitStorage => {
                     combination.contents.activeVariantIndex.write(combination.contents.activeVariantIndex.read());
                 },
                 getActiveVariant: () => combination.contents.variants.get(combination.contents.activeVariantIndex.read()),
-                getInactiveVariant: () => combination.contents.variants.get(combination.contents.activeVariantIndex.read()),
+                getInactiveVariant: () => combination.contents.variants.get(1 - combination.contents.activeVariantIndex.read()),
             },
         };
     };
