@@ -9,6 +9,8 @@ let makeMVPDB = bitStorage => {
         return sequence;
     };
     let makeNumber = sequence => parseInt(sequence.join(""), 2);
+    let readNumber = (size, addr) => makeNumber(readSequence(size, addr));
+    let writeNumber = (number, size, addr) => writeSequence(makeSequence(number, size), addr)
 
     let union = variantProducer => addr => {
         let maxSize = 0;
@@ -45,11 +47,11 @@ let makeMVPDB = bitStorage => {
     });
     let pointer = target => addr => {
         const size = 50;
-        let read = () => readSequence(size, addr);
+        let read = () => readNumber(size, addr);
         return {
             size,
             read,
-            write: newValue => writeSequence(makeSequence(newValue, size), addr),
+            write: newValue => writeNumber(newValue, size, addr),
             resolve: () => target(read()),
         };
     };
@@ -70,12 +72,12 @@ let makeMVPDB = bitStorage => {
             ++variantsCount;
             return oldVariantsCount;
         });
-        const size = Math.ceil(Math.log2(variantsCount));
+        let size = Math.ceil(Math.log2(variantsCount));
         return {
             size,
             contents: { 
-                read: () => makeNumber(readSequence(size, addr)),
-                write: newValue => writeSequence(makeSequence(newValue, size), addr),
+                read: () => readNumber(size, addr),
+                write: newValue => writeNumber(newValue, size, addr),
                 variants,
             },
         };
