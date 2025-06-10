@@ -1,50 +1,57 @@
 let makeMVPDB = bitStorage => {
-    let makeStruct = initializer => baseAddr => initializer((() => {
-        return fieldSize => {
-            let oldTotalBias = baseAddr;
-            baseAddr += fieldSize;
-            return () => oldTotalBias;
-        };
-    })());
+    /*UNLIKELY:
+    let pointer = pointee => ({
+        size: 50,
+        make: addr => pointee(addr),
+    });*/
 
-    let dataSlot = () => array(pointer(dataSlot()));
-    let freeSlot = () => struct(field => ({
-        next: field(pointer(freeSlot())),
-    }));
-    let transactionSlot = () => struct(field => ({
-        next: field(pointer(freeSlot())),
-        data: field(enum_(variant => ({
-            bit0: variant(),
-            bit1: variant(),
-            removal: variant(),
-            insertion: variant(),
+    let union = variantProducer => addr => {
+        let maxSize = 0;
+        let contents = variantProducer(variant => {
+
+        });
+        return {
+            size: maxSize,
+            make: () => contents,
+        };
+    };
+
+    let slot = () => union(variant => ({
+        data: variant(struct(field => ({
+            branches: field(array(pointer(slot()))),
+        }))),
+        free: variant(struct(field => ({
+            next: field(pointer(slot())),
+        }))),
+        transaction: variant(struct(field => ({
+            next: field(pointer(slot())),
+            data: field(enum_(variant => ({
+                bit0: variant(),
+                bit1: variant(),
+                removal: variant(),
+                insertion: variant(),
+            }))),
         }))),
     }));
     let staticState = struct(field => ({
         activeVariantIndex: field(bool()),
         variants: field(array(struct(field => ({
-            dataTree: field(pointer())
+            dataTreeRoot: field(pointer(slot())),
+            freesQueueBeginning: field(pointer(slot())),
+            eof: field(pointer(slot())),
+            transactionQueueBeginning: field(pointer(slot())),
         })))),
-    }));
+    })).make(0);
 
-    // ---------
-    let { read, write, commit } = bitStorage;
-    const ptrSize = 50;
-    const staticStateValidityFlagPtrPtr = 0;
-    const dataTreeRootPtrPtr = staticStateValidityFlagPtrPtr + 1;
-    const freesQueueBeginningPtrPtr = dataTreeRootPtrPtr + ptrSize;
-    const eofPtrPtr = freesQueueBeginningPtrPtr + ptrSize;
-    const transactionBeginningPtrPtr = eofPtrPtr + ptrSize;
-    const stateCopyPtrPtr = transactionBeginningPtrPtr + ptrSize;
-    const dynamicStatePtrPtr = stateCopyPtrPtr * 2 - dataTreeRootPtrPtr;
-    let processCurrentState = ctx => {
-
-    };
     return {
         get: () => {},
-        resetTransaction: () => {},
-        add: () => {},
-        remove: () => {},
-        commit: () => {},
+        beginTransaction: transactionHandler => {
+            resetTransaction();
+            transactionHandler({
+                insert: () => {},
+                remove: () => {},
+            });
+            commit();
+        },
     };
 };
