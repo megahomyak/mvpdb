@@ -91,7 +91,26 @@ To remove unnecessary saves, this thing can be remodeled:
 * On writes, if the flag is "1", state must be saved before the write and the flag should be set to "0"
 * On reads, the flag is set to "1"
 
-OPERATIONS:
+=== THINKING THROUGH THE STORAGE OF DIFFERENT ENTITIES ===
+
+The data tree:
+* Static memory: ptr to root (for case: empty tree, however, an impl with "0"-"1"-pointers may also be used, it's not much different)
+* Dynamic memory: ["0"-ptr, "1"-ptr] slots
+* Features: any of the branch pointers may be NULL
+
+The free slot FIFO queue:
+* Static memory: addr of next free cell, addr of eof (for case: no more empty slots)
+* Dynamic memory: data cells, but with the first slot filled with next "free cell" address
+* Features: queue ends at NULL
+
+The [reversed?] transaction queue:
+* Static memory: addr of beginning cell
+* Dynamic memory: same as free slot queue, but the second slot is finally used: for the data that's inserted (00 for "0-bit", 01 for "1-bit", 10 for "removal", 11 for "insertion")
+* Features: "commit" does not need to be here because it's just gonna start a "transaction execution" state outside of this queue
+* Debatable: with the reversal, one would need to reverse the linked list before committing all of the changes, but that would allow to only have one pointer to the transaction queue at all times, while with two pointers, no reversal will be needed. I think I should write out both algorithms and see which one will turn out to be simpler
+
+=== THINKING THE OPERATIONS THROUGH ===
+
 * "get" - doesn't have to be protected because it is read-only
 * "beginTransaction" - has to be protected
 * "add" - has to be protected
