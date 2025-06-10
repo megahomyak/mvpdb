@@ -1,4 +1,15 @@
 let makeMVPDB = bitStorage => {
+    let readSequence = (size, addr) => Array.from({ length: size }).map((_, i) => bitStorage.read(addr + i));
+    let writeSequence = (sequence, addr) => sequence.forEach((bit, i) => bitStorage.write(bit, addr + i));
+    let makeSequence = (number, size) => {
+        let sequence = Array.from(number.toString(2).padStart(size, '0'), bit => bit == '1');
+        if (sequence.length > size) {
+            throw new Error("Number too big");
+        }
+        return sequence;
+    };
+    let makeNumber = sequence => parseInt(sequence.join(""), 2);
+
     let union = variantProducer => addr => {
         let maxSize = 0;
         let contents = variantProducer(variant => {
@@ -13,7 +24,6 @@ let makeMVPDB = bitStorage => {
             contents,
         };
     };
-
     let struct = fieldProducer => addr => {
         let totalSize = 0;
         let contents = fieldProducer(field => {
@@ -26,17 +36,23 @@ let makeMVPDB = bitStorage => {
             contents,
         };
     };
-
     let bool = () => addr => ({
         size: 1,
-        contents: { addr },
+        contents: {
+            read: () => bitStorage.read(addr),
+            write: newValue => bitStorage.write(newValue, addr),
+        },
     });
-
-    let pointer = () => addr => ({
-        size: 50,
-        contents: { addr },
-    });
-
+    let pointer = target => addr => {
+        const size = 50;
+        let read = () => readSequence(size, addr);
+        return {
+            size,
+            read,
+            write: newValue => writeSequence(makeSequence(newValue, size), addr),
+            resolve: () => target(read()),
+        };
+    };
     let array = (itemsCount, item) => addr => {
         let contents = [];
         let totalSize = 0;
@@ -47,7 +63,6 @@ let makeMVPDB = bitStorage => {
         }
         return contents;
     };
-
     let enum_ = variantProducer => addr => {
         let variantsCount = 0;
         let variants = variantProducer(() => {
@@ -55,21 +70,26 @@ let makeMVPDB = bitStorage => {
             ++variantsCount;
             return oldVariantsCount;
         });
+        const size = Math.ceil(Math.log2(variantsCount));
         return {
-            size: Math.ceil(Math.log2(variantsCount)),
-            contents: { addr, variants },
+            size,
+            contents: { 
+                read: () => makeNumber(readSequence(size, addr)),
+                write: newValue => writeSequence(makeSequence(newValue, size), addr),
+                variants,
+            },
         };
     };
 
-    let slotModel = union(variant => ({
+    let slot = () => union(variant => ({
         data: variant(struct(field => ({
-            branches: field(array(2, pointer())),
+            branches: field(array(2, pointer(slot()))),
         }))),
         free: variant(struct(field => ({
-            next: field(pointer()),
+            next: field(pointer(slot())),
         }))),
         transaction: variant(struct(field => ({
-            next: field(pointer()),
+            next: field(pointer(slot())),
             data: field(enum_(variant => ({
                 bit0: variant(),
                 bit1: variant(),
@@ -78,16 +98,15 @@ let makeMVPDB = bitStorage => {
             }))),
         }))),
     }));
-    let staticStateModel = struct(field => ({
+    let staticState = () => struct(field => ({
         activeVariantIndex: field(bool()),
         variants: field(array(2, struct(field => ({
-            dataTreeRoot: field(pointer()),
-            freesQueueBeginning: field(pointer()),
-            eof: field(pointer()),
-            transactionQueueBeginning: field(pointer()),
+            dataTreeRoot: field(pointer(slot())),
+            freesQueueBeginning: field(pointer(slot())),
+            eof: field(pointer(slot())),
+            transactionQueueBeginning: field(pointer(slot())),
         })))),
     }));
-    staticStateModel(0).contents // tsserver can't resolve, ugh
 
     return {
         get: () => {},
