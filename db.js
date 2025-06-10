@@ -56,14 +56,18 @@ let makeMVPDB = bitStorage => {
         };
     };
     let array = (itemsCount, item) => addr => {
-        let contents = [];
-        let totalSize = 0;
-        for (let i = 0; i < itemsCount; ++i) {
-            let itemDescription = item(addr + totalSize);
-            totalSize += itemDescription.size;
-            contents.push(itemDescription.contents);
-        }
-        return contents;
+        let itemSize = item(0).size;
+        return {
+            size: itemSize * itemsCount,
+            contents: {
+                get: index => {
+                    if (index < itemsCount) {
+                        return item(addr + index * itemSize).contents;
+                    }
+                    throw new Error("Array index out of bounds");
+                },
+            },
+        };
     };
     let enum_ = variantProducer => addr => {
         let variantsCount = 0;
