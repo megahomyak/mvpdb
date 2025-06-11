@@ -97,7 +97,7 @@ Essentially, I need to separate code into regions that can be re-run with the sa
 
 I guess: "we need to have all of the addresses on us before doing the writing". This just means that this is bad: `write(read(ptr), value)`, while this is good: `write(staticAddr, read(ptr)); checkpoint; write(staticAddr, value);`. Here's an example of no-checkpoint static state shenanigans: `if (read(st) == 0) { no_checkpoint_here(); write(st, 1); no_checkpoint_here_either(); do_other_thing(); }`
 
-Perhaps, the basic idea is "don't overwrite invariants"? Or, maybe, "don't overwrite parameters"
+Perhaps, the basic idea is "don't overwrite invariants"? Or, maybe, "don't overwrite parameters". Actually, maybe it is about copying everything to the protected (=static) state and then only doing checkpoints if a value was first read a static variable and then written to the same static variable - between these two there needs to be a border of saving (=a checkpoint).
 
 === THINKING THROUGH THE STORAGE OF DIFFERENT ENTITIES ===
 
