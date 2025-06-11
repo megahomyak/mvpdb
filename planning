@@ -99,6 +99,10 @@ I guess: "we need to have all of the addresses on us before doing the writing". 
 
 Perhaps, the basic idea is "don't overwrite invariants"? Or, maybe, "don't overwrite parameters". Actually, maybe it is about copying everything to the protected (=static) state and then only doing checkpoints if a value was first read from a static variable and then written to the same static variable - between these two there needs to be a border of saving (=a checkpoint). "Modify someplace else, only read from not that place" = "for any checkpoint area, mark every bit of the file as either read-only or write-only" <- by the way, exactly what's being done by "duplicate protection". Even better: every bit starts as "write only" and can be promoted to "read only" at any time, but a promotion back into "write only" requires making a checkpoint (e.g. remembering the position in the algorithm)
 
+---
+> every bit starts as "write only" and can be promoted to "read only" at any time, but a promotion back into "write only" requires making a checkpoint (e.g. remembering the position in the algorithm)
+---
+
 === DUPLICATE PROTECTION FUCKUP ===
 
 If I'm only gonna be writing parts of the other state and not the whole thing, I'd need to copy the active state into the inactive one after switching, i.e. every state variant will have to start being readable only with its covariant being an exact copy.
