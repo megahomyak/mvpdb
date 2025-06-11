@@ -95,6 +95,8 @@ Actually, the only time something has to be done is when there's any indirection
 
 Essentially, I need to separate code into regions that can be re-run with the same static data but differing dynamic data?? One way to know we're not going into dynamic data as a data source is by not using any pointers
 
+I guess: "we need to have all of the addresses on us before doing the writing". This just means that this is bad: `write(read(ptr), value)`, while this is good: `write(staticAddr, read(ptr)); checkpoint; write(staticAddr, value);`. Here's an example of no-checkpoint static state shenanigans: `if (read(st) == 0) { no_checkpoint_here(); write(st, 1); no_checkpoint_here_either(); do_other_thing(); }`
+
 === THINKING THROUGH THE STORAGE OF DIFFERENT ENTITIES ===
 
 The data tree:
