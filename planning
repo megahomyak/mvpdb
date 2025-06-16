@@ -13,6 +13,13 @@ This ensures that the dynamic area will not get any modification based on unpred
 
 Any state can be supplemented with any outside memory, as long as there is no data that is read from it that wasn't previously written into it by the same execution of the state processing algorithm. For example, a chunk of file space can be reserved to store temporaries needed for state processing, or the same storage can be done in RAM and not in the file.
 
+Same, but briefly:
+* Stage 1: past: read-only; future: write-only; dynamic: write-only
+* <any operations here>
+* Stage 2: past: read-only; future: write-only; dynamic: read-only
+* <any operations here>
+* At this point, "future" should be fully written; flipping the bit that flips the past and the future; no more operations are allowed
+
 === FREE NODES THOUGHTS ===
 
 let's say we're not doing the protections yet
