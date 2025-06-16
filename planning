@@ -1,3 +1,18 @@
+=== NEWEST FORMALIZATION OF THE RESET PROTECTION SYSTEM ===
+
+Goal: make a system that works with a file in such a way that the algorithm working on the file will be able to be stopped at any point and restarted from the beginning, and that wouldn't lead to the algorithm malfunctioning/file getting corrupted.
+
+Two assumptions:
+1. The input is an array of potentially infinite size, and each element of said array is either a "0" or a "1", can't be in-between
+2. Reads and writes to the array are together ordered
+
+There is a "static area" of the array and a "dynamic area". Any file-modifying algorithm is split up into "states". Switches between states are atomic: in the static memory, there must be two versions of the state - one "past" and one "future", and a bit determining which is which. When a "state" is processed, the "past" region is read-only, while the "future" region is write-only, and by flipping the bit only when "future" is fully written, atomicity of such state saves can be achieved. When a state is processed, it goes through these stages:
+1. past: read-only | future: write-only | dynamic: write-only
+2. past: read-only | future: write-only | dynamic: read-only
+This ensures that the dynamic area will not get any modification based on unpredictable data, while allowing to query data from the dynamic area.
+
+Any state can be supplemented with any outside memory, as long as there is no data that is read from it that wasn't previously written into it by the same execution of the state processing algorithm. For example, a chunk of file space can be reserved to store temporaries needed for state processing, or the same storage can be done in RAM and not in the file.
+
 === FREE NODES THOUGHTS ===
 
 let's say we're not doing the protections yet
