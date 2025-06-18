@@ -20,6 +20,14 @@ Same, but briefly:
 * <any operations here>
 * At this point, "future" should be fully written; flipping the bit that flips the past and the future; no more operations are allowed
 
+= BETTER FORMALIZATION =
+
+1. We mustn't make decisions based on unpredictable values
+2. Everything that comes from the outer state is unpredictable
+3. Dynamic area is part of outer state
+4. Any value inside "past" is predictable
+5. Any value can be written inside "future", even if unpredictable
+
 === FREE NODES THOUGHTS ===
 
 let's say we're not doing the protections yet
