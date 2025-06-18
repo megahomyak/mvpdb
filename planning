@@ -37,6 +37,10 @@ Same, but briefly:
 
 * There must be no writes based on unpredictable data
 
+= better?: =
+
+* We mustn't read from areas we may modify later
+
 === FREE NODES THOUGHTS ===
 
 let's say we're not doing the protections yet
