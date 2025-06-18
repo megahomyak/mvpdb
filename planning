@@ -33,6 +33,10 @@ Same, but briefly:
 * Thou shall not make decisions based on data that may differ between re-runs of state (where "state" is the static area's state thing)
 * Thou shall not modify permanent stuff (the kind of stuff that survives state re-runs) outside of static state, where the modifications will depend on the information that may be different between state re-runs
 
+= better?: =
+
+* There must be no writes based on unpredictable data
+
 === FREE NODES THOUGHTS ===
 
 let's say we're not doing the protections yet
