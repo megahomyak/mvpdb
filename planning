@@ -49,6 +49,10 @@ Same, but briefly:
 
 * Do not write to places from which we were previously reading - PERFECT!?
 
+=
+
+* All information in the algorithm should be retrievable on restart ??
+
 === FREE NODES THOUGHTS ===
 
 let's say we're not doing the protections yet
