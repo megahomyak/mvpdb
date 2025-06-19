@@ -45,6 +45,10 @@ Same, but briefly:
 
 * The algorithm needs to be split into *idempotent* parts, and between those parts there should be checkpoints
 
+=
+
+* Do not write to places from which we were previously reading - PERFECT!?
+
 === FREE NODES THOUGHTS ===
 
 let's say we're not doing the protections yet
