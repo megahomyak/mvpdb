@@ -235,3 +235,10 @@ write(local[!cur_part])
 copy(local[cur_part], dyn)
 copy(dyn, local[!cur_part])
 } - absolutely protected, i suppose. I will only have to get out of a section when I need to update a local variable. And since the heap can only be updated through local variables, I'm kinda safe conceptually! Nothing should go wrong, I hope...
+
+even better? x2:
+
+read_local(local_addr) reads from local[cur_part]
+read_dyn(dyn_addr, local_addr) copies from dyn to local[!cur_part]
+write_local(local_addr, v) writes to local[!cur_part]
+write_dyn(dyn_addr, local_addr) copies from local[cur_part] to dyn
