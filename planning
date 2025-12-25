@@ -242,3 +242,5 @@ read_local(local_addr) reads from local[cur_part]
 read_dyn(dyn_addr, local_addr) copies from dyn to local[!cur_part]
 write_local(local_addr, v) writes to local[!cur_part]
 write_dyn(dyn_addr, local_addr) copies from local[cur_part] to dyn
+
+in fact, that was incorrect. for dyn-managing functions, i need their arguments to be computed purely using data from the active static section. since i don't want to program my own language to ensure functional cleanliness, there's a nifty workaround: just place all the operands for the operator into the active static memory section, and then invoke the operator on the static section on those operands
