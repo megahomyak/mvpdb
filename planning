@@ -201,3 +201,17 @@ add(s, *dataRoot, *freeRoot) {
 remove(s) {
 
 }
+
+============================
+
+copy(from=local[cur_part], to=local[!cur_part])
+block_id := read(local[cur_part].block)
+each block: {
+read(local[cur_part].?)
+anywhere: write(local[!cur_part].?)
+write(read(local[cur_part].?), ?) # dynamic writes
+read(read(local[cur_part].?), ?) # dynamic reads
+cur_part = !cur_part
+} - this can actually never fail no matter where a stop is
+
+so, basically, in a section, reads and writes to the static section may happen at any time because they're done to two separate sections. However, no dynamic write should come after a dynamic read as to not corrupt the state
