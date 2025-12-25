@@ -215,3 +215,23 @@ cur_part = !cur_part
 } - this can actually never fail no matter where a stop is
 
 so, basically, in a section, reads and writes to the static section may happen at any time because they're done to two separate sections. However, no dynamic write should come after a dynamic read as to not corrupt the state
+
+write_dyn(...) = write(read(...), ...)
+read_dyn(...) = read(read(...))
+cur_part := read(cur_part_addr)
+copy(from=local[cur_part], to=local[!cur_part])
+section_id := read(local[cur_part].block)
+section {
+write_dyn()
+read_dyn()
+}
+write(cur_part_addr, !cur_part)
+
+even better?:
+
+section {
+read(local[cur_part])
+write(local[!cur_part])
+copy(local[cur_part], dyn)
+copy(dyn, local[!cur_part])
+} - absolutely protected, i suppose. I will only have to get out of a section when I need to update a local variable. And since the heap can only be updated through local variables, I'm kinda safe conceptually! Nothing should go wrong, I hope...
