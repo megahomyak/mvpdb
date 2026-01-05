@@ -1,10 +1,11 @@
+#include <unistd.h>
 #include <stdio.h>
 
 // Premature assumptions: int for state num, int for addresses, we can only address an int at once, client endianness will always be the same, static area will always be 256 int segments in length, file opening cannot fail
 // ^^^^^ These are here to make development easier
 
 struct db {
-    FILE* _file;
+    int _file;
     int _failure;
 };
 
@@ -12,16 +13,16 @@ const int static_area_half = 128;
 
 void _write_int(struct db* db, int addr, int value) {
     if (
-        fseek(db->_file, addr, SEEK_SET) == -1 ||
-        fwrite(&value, sizeof(value), 1, db->_file) != 1
+        lseek(db->_file, addr, SEEK_SET) == -1 ||
+        write(db->_file, &value, sizeof(value))
     ) db->_failure = 1;
 }
 
 int _read_int(struct db* db, int addr) {
     int value;
     if (
-        fseek(db->_file, addr, SEEK_SET) == -1 ||
-        fread(&value, sizeof(value), 1, db->_file) != 1
+        lseek(db->_file, addr, SEEK_SET) == -1 ||
+        read(db->_file, &value, sizeof(value))
     ) db->_failure = 1;
     return value;
 }
@@ -50,13 +51,13 @@ int _get_dyn_addr(int addr) {
 //#define db_static_write_(addr, value) db_static_write(db, ((int) (size_t) &((struct dblayout*) 0)->##addr), value)
 
 void db_open(struct db* db, char* path) {
-    FILE* _file = fopen(path, "w+b");
+    int _file = open(path, O_CREAT | O_RDWR);
     db->_file = _file;
     db->_failure = 0;
 }
 
 void db_close(struct db* db) {
-    fclose(db->_file);
+    close(db->_file);
 }
 
 void db_flip(struct db* db) {
