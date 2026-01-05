@@ -42,6 +42,10 @@ int _get_inactive_addr(struct db* db, int addr) {
     return 1 + addr + static_area_half * !_get_activeness_bit(db);
 }
 
+int _get_dyn_addr(int addr) {
+    return 1 + static_area_half * 2 + addr;
+}
+
 //#define db_static_read_(addr) db_static_read(db, ((int) (size_t) &((struct dblayout*) 0)->##addr))
 //#define db_static_write_(addr, value) db_static_write(db, ((int) (size_t) &((struct dblayout*) 0)->##addr), value)
 
@@ -72,9 +76,9 @@ int get_failure(struct db* db) {
 }
 
 void db_dyn_write(struct db* db, int dyn_addr_addr, int value_addr) {
-    _write_int(db, _read_int(db, _get_active_addr(db, dyn_addr_addr)), _read_int(db, _get_active_addr(db, value_addr)));
+    _write_int(db, _get_dyn_addr(_read_int(db, _get_active_addr(db, dyn_addr_addr))), _read_int(db, _get_active_addr(db, value_addr)));
 }
 
 void db_dyn_read(struct db* db, int dyn_addr, int local_addr) {
-    _write_int(db, _get_inactive_addr(db, local_addr), _read_int(db, dyn_addr));
+    _write_int(db, _get_inactive_addr(db, local_addr), _read_int(db, _get_dyn_addr(dyn_addr)));
 }
