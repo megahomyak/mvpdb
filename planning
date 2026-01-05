@@ -243,6 +243,32 @@ read_dyn(dyn_addr, local_addr) copies from dyn to local[!cur_part]
 write_local(local_addr, v) writes to local[!cur_part]
 write_dyn(dyn_addr, local_addr) copies from local[cur_part] to dyn
 
-in fact, that was incorrect. for dyn-managing functions, i need their arguments to be computed purely using data from the active static section. since i don't want to program my own language to ensure functional cleanliness, there's a nifty workaround: just place all the operands for the operator into the active static memory section, and then invoke the operator on the static section on those operands
+in fact, that was incorrect. for dyn-managing functions, i need their arguments to be computed purely using data from the active static section. since i don't want to program my own language to ensure functional cleanliness, there's a nifty workaround: just place all the operands for the operator into the active static memory section, and then invoke the operator on the static section on those operands. that gives:
+
+read_state_num() -> state_num // reads state num
+read_static(static_addr) -> value // reads from active
+write_static(static_addr, value) // writes into inactive
+write_dyn(addr_static_addr, value_static_addr) // reads from active
+read_dyn(src_static_addr, dst_static_addr) // writes into inactive
+flip(new_state_num) // writes new state num, flips activity bit
+// all the stuff needed to transition into a new state needs to be initialized before we flip to the new state
+
+i don't think read_dyn really has to be that way as reads from static or from dyn are basically the same, read_dyn just introduces an extra step, so I think I might just allow to read from anywhere. that might mean that i am allowed to read from the inactive state... i don't even know anymore... later: i don't think so, since the active is supposed to be the data for the dyn writes, not the ram. so the active state is only gonna be used for all kinds of writes and for keeping track of local state. however, if I want to reduce decision-taking based on bad data, I should probably NOT read straight from the dyn as i may accidentally read half-written data from the previous run of the same state (if i have a dyn_read and then a dyn_write)
+
+^^^ yes, technically, with that scheme i will only be able to read from the active ever, and since it's guaranteed to be correct and before the flip everything's supposed to be set up in the inactive by the user, i can be sure no accidental corruption will take place
 
 i can think of each section as just data preparation before switching to the next section. sections would thus be states, 'cause that'd be a state machine. basically, at the end of each section, i just have to say what state i'd like to get into next, and sometimes that state would require extra parameters, just like the very first state requiring a command to know what operation it's supposed to do now
+
+so, the db layout:
+
+[a bunch of ones terminated with a zero representing the pointer size, ideally - to make databases resizable, but this thingy can be implemented in many ways and it may actually sit on a different level] - s bits
+[activeness bit] - 1 bit
+[state num 1] - k bits
+[rest of static area 1] - n bits
+[state num 2] - k bits
+[rest of static area 2] - n bits
+[dynamic area] - infinite length
+
+Technically, the state num does not contribute to the thing as much as the bit, and there is a chance it can just be thrown away in favor of different control registers, but for my scheme, it's very convenient to couple the state num and the flipping
+
+if any of the file operations fail, then it's not that bad, we just shouldn't flip the statics in that case, as the inactive area may be uninitialized. just in case, we may have a client-side api-attached failure bit that will be set if something goes wrong, and the flipping will simply not proceed if the bit is set, returning it while resetting it as well - will notify the caller of a failure while allowing for a retry. except for queries that are fully "get": for those, indication should be alongside data reading, I think, otherwise there's gonna be no way to tell if the reading was successful at all, and I don't want my clients operating on garbage
