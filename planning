@@ -272,3 +272,26 @@ so, the db layout:
 Technically, the state num does not contribute to the thing as much as the bit, and there is a chance it can just be thrown away in favor of different control registers, but for my scheme, it's very convenient to couple the state num and the flipping
 
 if any of the file operations fail, then it's not that bad, we just shouldn't flip the statics in that case, as the inactive area may be uninitialized. just in case, we may have a client-side api-attached failure bit that will be set if something goes wrong, and the flipping will simply not proceed if the bit is set, returning it while resetting it as well - will notify the caller of a failure while allowing for a retry. except for queries that are fully "get": for those, indication should be alongside data reading, I think, otherwise there's gonna be no way to tell if the reading was successful at all, and I don't want my clients operating on garbage
+
+== operations
+
+i'm operating a binary prefix tree. each node has either 0, 1 or 2 children. i need to allow tree traversal (reading), node deletion and node insertion (and updates; updates may be implemented through deletion+insertion). assuming that node targeting can be done through its full path (with the root node having an empty path to it), i get:
+* create(node_path, bit) - in the node specified by node_path, adds    a child node with index `bit` if it did not already exist
+* remove(node_path, bit) - in the node specified by node_path, removes a child node with index `bit` if it exists
+* check(node_path, bit) - checks whether a node by node_path has a child with index `bit`
+
+- however, these are a little inconvenient to use. if i focus more on the prefix nature of the database, at least the querying should be done more properly IMO:
+let bitstring be { bit, array[bit] }
+* add(bitstring) -> nothing
+* remove(bitstring) -> nothing
+* find(bitstring_prefix) -> set[bitstring] # Not completions as they would not be representable for exact matches
+
+since i want transactions, i would need a "commit" of some kind. also a "begin"
+
+since i want data streaming, i'd need some kind of callbacks. so, ig:
+begin_transaction()
+end_transaction()
+begin_adding(first_bit)
+begin_removing(first_bit)
+begin_finding(first_bit)
+add_bit(bit)
